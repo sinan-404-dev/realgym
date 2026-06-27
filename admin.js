@@ -40,11 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // ── Admin Login ───────────────────────────────────
     adminLoginForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const email    = document.getElementById("admin-email").value.trim();
+        const username = document.getElementById("admin-email").value.trim();
         const password = document.getElementById("admin-password").value;
 
-        if (email.toLowerCase() === "admin@realgym.com" && password === "admin123") {
-            currentAdmin = { email: "admin@realgym.com", role: "SuperAdmin" };
+        if (username === "abusinan" && password === "abusinan@admin@123") {
+            currentAdmin = { username: "abusinan", role: "SuperAdmin" };
             RealGymDB.setCurrentAdmin(currentAdmin);
             updateSessionUI();
             showToast("Authenticated as administrator.");
