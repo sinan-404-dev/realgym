@@ -20,7 +20,6 @@ const db = firebase.firestore();
 
 // Razorpay Payment Gateway Configuration
 // Enter your live Razorpay Key ID here once you have activated your account.
-// Using default test key for testing.
-const RAZORPAY_KEY_ID = "rzp_test_5S3RzT0Zt2c9ff";
+const RAZORPAY_KEY_ID = "rzp_test_T6pgZ7NEYbLmAi";
 
 console.log("✅ RealGym Firebase connected — Firestore ready.");
