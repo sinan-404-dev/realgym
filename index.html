@@ -306,13 +306,19 @@
                         </div>
                     </div>
                     
+                    <!-- Renew Option Row supporting Online Payments -->
                     <div style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                         <div>
-                            <span style="font-size: 13.5px; color: #aaa;">Need to renew or upgrade your plan? Chat with Team AbuSinan directly.</span>
+                            <span style="font-size: 13.5px; color: #aaa;">Renew your plan securely online via Razorpay or chat with us for manual payments.</span>
                         </div>
-                        <a id="client-renew-btn" href="#" target="_blank" class="button" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; padding: 12px 24px;">
-                            <span>💬</span> Renew Membership
-                        </a>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <a id="client-renew-wa-btn" href="#" target="_blank" class="button secondary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-size: 13px;">
+                                <span>💬</span> WhatsApp support
+                            </a>
+                            <button id="client-pay-online-btn" class="button" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 12px 24px; border-radius: 6px; font-size: 13px;">
+                                <span>💳</span> Pay & Renew Online
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -376,7 +382,7 @@
                         <option value="Elite Annual" selected>Elite Annual (₹9,999/yr)</option>
                     </select>
                 </div>
-                <button type="submit" class="button" style="width: 100%; margin-top: 10px;">Create Account</button>
+                <button type="submit" class="button" style="width: 100%; margin-top: 10px;" id="register-submit-btn">Pay & Register Account</button>
                 
                 <p style="text-align: center; font-size: 13px; color: #888; margin-top: 20px;">
                     Already have an account? <a href="#" id="go-to-login" style="color: #39FF14; text-decoration: none; font-weight: 500;">Sign In</a>
@@ -414,6 +420,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <!-- Scripts -->
     <script src="firebase-config.js"></script>

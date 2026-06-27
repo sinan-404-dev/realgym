@@ -208,7 +208,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // ── Register (Firebase) ───────────────────────────
+    // Plan pricing config mapping
+    const PLAN_PRICES = {
+        "Monthly": 1000,
+        "Quarterly": 2999,
+        "Half-Yearly": 5499,
+        "Elite Annual": 9999
+    };
+
+    // ── Register (Firebase + Razorpay Gateway) ────────
     registerForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const name     = document.getElementById("register-name").value.trim();
@@ -216,55 +224,94 @@ document.addEventListener("DOMContentLoaded", () => {
         const phone    = document.getElementById("register-phone").value.trim();
         const tier     = document.getElementById("register-tier").value;
 
-        const submitBtn = registerForm.querySelector("button[type='submit']");
-        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = "Registering…"; }
+        const submitBtn = document.getElementById("register-submit-btn");
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = "Processing Payment…"; }
 
         try {
             const existing = await RealGymDB.getMemberByPhone(phone);
             if (existing) {
                 showToast("This phone number is already registered.", true);
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Pay & Register Account"; }
                 return;
             }
 
-            const memberId   = "RG-" + Math.floor(10000 + Math.random() * 90000);
-            const today      = new Date();
-            const dateJoined = today.toISOString().split("T")[0];
+            const price = PLAN_PRICES[tier] || 1000;
+            const amountInPaise = price * 100; // Razorpay needs subunits (paise)
 
-            const renewalDateObj = new Date();
-            if      (tier === "Monthly")      renewalDateObj.setMonth(today.getMonth() + 1);
-            else if (tier === "Quarterly")    renewalDateObj.setMonth(today.getMonth() + 3);
-            else if (tier === "Half-Yearly")  renewalDateObj.setMonth(today.getMonth() + 6);
-            else if (tier === "Elite Annual") renewalDateObj.setMonth(today.getMonth() + 12);
-            else                              renewalDateObj.setMonth(today.getMonth() + 1);
+            // Setup Razorpay checkout options
+            const options = {
+                "key": RAZORPAY_KEY_ID, 
+                "amount": amountInPaise.toString(),
+                "currency": "INR",
+                "name": "RealGym Orimukku",
+                "description": `Registration: ${tier} Plan`,
+                "image": "gym-logo.png",
+                "handler": async function (response) {
+                    try {
+                        const paymentId = response.razorpay_payment_id;
+                        const memberId   = "RG-" + Math.floor(10000 + Math.random() * 90000);
+                        const today      = new Date();
+                        const dateJoined = today.toISOString().split("T")[0];
 
-            const renewalDate = renewalDateObj.toISOString().split("T")[0];
+                        const renewalDateObj = new Date();
+                        if      (tier === "Monthly")      renewalDateObj.setMonth(today.getMonth() + 1);
+                        else if (tier === "Quarterly")    renewalDateObj.setMonth(today.getMonth() + 3);
+                        else if (tier === "Half-Yearly")  renewalDateObj.setMonth(today.getMonth() + 6);
+                        else if (tier === "Elite Annual") renewalDateObj.setMonth(today.getMonth() + 12);
+                        else                              renewalDateObj.setMonth(today.getMonth() + 1);
 
-            const newMember = {
-                email: phone,
-                password,
-                name,
-                memberId,
-                tier,
-                phone,
-                status: "active",
-                dateJoined,
-                renewalDate
+                        const renewalDate = renewalDateObj.toISOString().split("T")[0];
+
+                        const newMember = {
+                            email: phone,
+                            password,
+                            name,
+                            memberId,
+                            tier,
+                            phone,
+                            status: "active",
+                            dateJoined,
+                            renewalDate,
+                            lastPaymentId: paymentId,
+                            lastPaymentAmount: price,
+                            lastPaymentDate: dateJoined
+                        };
+
+                        await RealGymDB.addMember(newMember);
+                        currentUser = newMember;
+                        RealGymDB.setCurrentUser(currentUser);
+
+                        updateNavigation();
+                        closeAuth();
+                        switchView("dashboard");
+                        showToast(`🎉 Registration & Payment Successful! Member ID: ${memberId}`);
+                    } catch (err) {
+                        console.error("Error creating member record post-payment:", err);
+                        showToast("Payment captured, but database update failed. Contact Admin.", true);
+                    }
+                },
+                "prefill": {
+                    "name": name,
+                    "contact": phone
+                },
+                "theme": {
+                    "color": "#39FF14"
+                },
+                "modal": {
+                    "ondismiss": function() {
+                        showToast("Payment cancelled by user.", true);
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Pay & Register Account"; }
+                    }
+                }
             };
 
-            await RealGymDB.addMember(newMember);
-            currentUser = newMember;
-            RealGymDB.setCurrentUser(currentUser);
-
-            updateNavigation();
-            closeAuth();
-            switchView("dashboard");
-            showToast(`🎉 Welcome to RealGym, ${name}! Your ID: ${memberId}`);
+            const rzp = new Razorpay(options);
+            rzp.open();
 
         } catch (err) {
-            console.error("Register error:", err);
-            showToast("Registration failed. Check internet connection.", true);
-        } finally {
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Register"; }
+            console.error("Register check error:", err);
+            showToast("Registration check failed.", true);
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Pay & Register Account"; }
         }
     });
 
@@ -327,11 +374,86 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // WhatsApp renew button
-            const renewBtn = document.getElementById("client-renew-btn");
-            if (renewBtn) {
+            // WhatsApp Support renew config
+            const renewWaBtn = document.getElementById("client-renew-wa-btn");
+            if (renewWaBtn) {
                 const msg = `Hello Team AbuSinan, I would like to renew my RealGym membership.\n- Name: ${currentUser.name}\n- Member ID: ${currentUser.memberId}\n- Plan: ${currentUser.tier}\n- Renewal Date: ${currentUser.renewalDate}`;
-                renewBtn.href = `https://wa.me/919447771658?text=${encodeURIComponent(msg)}`;
+                renewWaBtn.href = `https://wa.me/919447771658?text=${encodeURIComponent(msg)}`;
+            }
+
+            // Online Payment renew handler
+            const payBtn = document.getElementById("client-pay-online-btn");
+            if (payBtn) {
+                // Clear old listeners
+                const newPayBtn = payBtn.cloneNode(true);
+                payBtn.parentNode.replaceChild(newPayBtn, payBtn);
+
+                newPayBtn.addEventListener("click", () => {
+                    newPayBtn.disabled = true;
+                    newPayBtn.innerText = "Opening Gateway…";
+
+                    const price = PLAN_PRICES[currentUser.tier] || 1000;
+                    const amountInPaise = price * 100;
+
+                    const options = {
+                        "key": RAZORPAY_KEY_ID,
+                        "amount": amountInPaise.toString(),
+                        "currency": "INR",
+                        "name": "RealGym Orimukku",
+                        "description": `Renewal: ${currentUser.tier} Plan`,
+                        "image": "gym-logo.png",
+                        "handler": async function (response) {
+                            try {
+                                const paymentId = response.razorpay_payment_id;
+                                const today = new Date();
+                                const currentRenewal = new Date(currentUser.renewalDate);
+
+                                // If renewal date is in the future, extend from that date. If expired, extend from today!
+                                let baseDate = today > currentRenewal ? today : currentRenewal;
+                                const newDate = new Date(baseDate);
+
+                                if      (currentUser.tier === "Monthly")      newDate.setMonth(baseDate.getMonth() + 1);
+                                else if (currentUser.tier === "Quarterly")    newDate.setMonth(baseDate.getMonth() + 3);
+                                else if (currentUser.tier === "Half-Yearly")  newDate.setMonth(baseDate.getMonth() + 6);
+                                else if (currentUser.tier === "Elite Annual") newDate.setMonth(baseDate.getMonth() + 12);
+                                else                                          newDate.setMonth(baseDate.getMonth() + 1);
+
+                                const newRenewalDate = newDate.toISOString().split("T")[0];
+
+                                await RealGymDB.updateMember(currentUser.phone, {
+                                    renewalDate: newRenewalDate,
+                                    status: "active",
+                                    lastPaymentId: paymentId,
+                                    lastPaymentAmount: price,
+                                    lastPaymentDate: today.toISOString().split("T")[0]
+                                });
+
+                                showToast(`✅ Renewed Successfully until ${newRenewalDate}!`);
+                                loadDashboardData();
+                            } catch (err) {
+                                console.error("Error executing renewal update:", err);
+                                showToast("PaymentCaptured, database update error.", true);
+                            }
+                        },
+                        "prefill": {
+                            "name": currentUser.name,
+                            "contact": currentUser.phone
+                        },
+                        "theme": {
+                            "color": "#39FF14"
+                        },
+                        "modal": {
+                            "ondismiss": function() {
+                                showToast("Payment cancelled.", true);
+                                newPayBtn.disabled = false;
+                                newPayBtn.innerText = "Pay & Renew Online";
+                            }
+                        }
+                    };
+
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                });
             }
 
         } catch (err) {
