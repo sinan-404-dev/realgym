@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealGym | Unleash Your Limits</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-container" style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 15px 20px;">
+            <a href="#" class="logo" style="display: flex; align-items: center; gap: 8px;">
+                <div style="background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; height: 50px; width: 50px; box-shadow: 0 0 15px rgba(255,255,255,0.2); overflow: hidden;">
+                    <img src="gym-logo.png" alt="The Real Gym Logo" style="height: 90%; width: 90%; object-fit: contain;">
+                </div>
+            </a>
+            
+            <div style="display: flex; align-items: center; gap: 30px;">
+                <ul class="nav-links" style="display: flex; gap: 20px; list-style: none; margin: 0; padding: 0;">
+                    <li><a id="nav-home" class="active">Home</a></li>
+                    <li><a id="nav-facilities">Facilities</a></li>
+                    <li><a id="nav-results">Results</a></li>
+                    <li><a id="nav-pricing">Membership</a></li>
+                    <li><a id="nav-dashboard" style="display: none;">Dashboard</a></li>
+                    <li><a id="nav-portal-btn" style="color: #39FF14 !important; font-weight: 700; text-shadow: 0 0 5px rgba(57, 255, 20, 0.2);">Client Portal</a></li>
+                </ul>
+                
+                <button id="nav-cta-btn" class="button" style="border-radius: 30px; padding: 10px 22px; font-size: 12px; font-weight: 800; border: none; letter-spacing: 1px;">Join Now</button>
+
+                <!-- Hamburger Button (mobile only) -->
+                <button class="hamburger-btn" id="hamburger-open" aria-label="Open Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Drawer -->
+    <div class="mobile-nav-drawer" id="mobile-nav-drawer">
+        <button class="mobile-nav-close" id="hamburger-close" aria-label="Close Menu">✕</button>
+        <a id="mob-nav-home">Home</a>
+        <a id="mob-nav-facilities">Facilities</a>
+        <a id="mob-nav-results">Results</a>
+        <a id="mob-nav-pricing">Membership</a>
+        <a id="mob-nav-dashboard" style="display:none;">Dashboard</a>
+        <a id="mob-nav-portal" style="color: #39FF14 !important;">Client Portal</a>
+        <a href="https://www.instagram.com/realgym.in/?hl=en" target="_blank" style="color: #888 !important; font-size: 14px !important; letter-spacing: 1px;">📸 Instagram</a>
+    </div>
+
+    <script>
+    // Mobile nav drawer logic
+    (function() {
+        const openBtn = document.getElementById('hamburger-open');
+        const closeBtn = document.getElementById('hamburger-close');
+        const drawer = document.getElementById('mobile-nav-drawer');
+        const closeFn = () => drawer.classList.remove('active');
+        if (openBtn) openBtn.addEventListener('click', () => drawer.classList.add('active'));
+        if (closeBtn) closeBtn.addEventListener('click', closeFn);
+
+        const map = {
+            'mob-nav-home': 'nav-home',
+            'mob-nav-facilities': 'nav-facilities',
+            'mob-nav-results': 'nav-results',
+            'mob-nav-pricing': 'nav-pricing',
+            'mob-nav-dashboard': 'nav-dashboard',
+            'mob-nav-portal': 'nav-portal-btn'
+        };
+        Object.keys(map).forEach(mobId => {
+            const mobEl = document.getElementById(mobId);
+            const deskEl = document.getElementById(map[mobId]);
+            if (mobEl && deskEl) {
+                mobEl.addEventListener('click', () => { closeFn(); deskEl.click(); });
+            }
+        });
+    })();
+    </script>
+
+    <!-- Main Content -->
+    <main>
+
+        <!-- 1. LANDING & SCHEDULE VIEW -->
+        <div id="view-landing" class="view-container active">
+            
+            <!-- Hero Section -->
+            <section class="container hero">
+                <div class="hero-text">
+                    <h1 style="font-size: 22px; line-height: 1.5; font-weight: 700; font-family: 'Manjari', sans-serif; letter-spacing: 0.5px; color: #ffffff;">ഉരുക്കു കോട്ടയിലേക്ക് <span style="color: #39FF14; text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);">സ്വാഗതം;</span> <br><span style="font-size: 18px; font-family: 'Manjari', sans-serif; font-weight: 700; color: #39FF14; text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);">ആരോഗ്യത്തിന്റെയും ഫിറ്റ്നസിന്റെയും</span> <span style="font-size: 18px; font-family: 'Manjari', sans-serif; font-weight: 700; color: #ffffff;">പുതിയ ലോകം!</span></h1>
+                    <p style="font-size: 15px; color: #39FF14; font-weight: 800; margin-top: 12px; margin-bottom: 25px; letter-spacing: 2px; font-family: 'Outfit'; text-transform: uppercase; text-shadow: 0 0 5px rgba(57, 255, 20, 0.4);">Welcome to Real Gym</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button class="button" id="hero-cta-btn">Join RealGym Portal</button>
+                        <button class="button secondary" id="hero-pricing-btn">View Memberships</button>
+                    </div>
+                </div>
+                <div class="hero-image-wrapper" style="position: relative;">
+                    <img src="trainer.png" alt="RealGym Founder & Owner" class="hero-trainer-img">
+                    <a href="https://www.instagram.com/abu_sinaan/" target="_blank" class="owner-badge" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #26D0CE 0%, #39FF14 100%); color: #000000; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap; box-shadow: 0 5px 15px rgba(57, 255, 20, 0.4); z-index: 10; border: 1px solid rgba(255, 255, 255, 0.2); text-decoration: none; cursor: pointer;">Founder & Owner</a>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <!-- Features Section -->
+            <section id="section-facilities" class="container" style="padding-top: 0; scroll-margin-top: 80px;">
+                <h2 style="text-align: center; margin-bottom: 20px; font-size: 32px;">OUR <span class="green-accent">FACILITIES</span> & SERVICES</h2>
+                <p style="text-align: center; color: #888; max-width: 600px; margin: 0 auto 50px auto; font-size: 15px; line-height: 1.6;">
+                    Unlock your true potential with training programs designed by <span class="green-accent" style="font-weight: 800; font-family: 'Outfit';">Team AbuSinan</span>. We provide elite coaching and specialized equipment in Orimukku.
+                </p>
+                
+                <div class="facilities-grid">
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Online & Offline</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Flexible digital fitness programs combined with structured in-gym training slots.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Personal Training</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Tailored one-on-one sessions customized to your specific strength levels and anatomy.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Arm Wrestling Training</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Professional table practice, custom grip strength rollers, and elite arm combat coaching.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Weight Training</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Heavy squat racks, specialized power bars, bumper plates, and progressive load tracking.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Fat Loss & Body Recomp</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Hyper-efficient conditioning workouts designed to burn fat and preserve skeletal muscle.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Group Training</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Structured team workouts fostering community support, solid form, and high-intensity output.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Diet & Nutrition</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Detailed macronutrient blueprints and supplementation advice aligned to your goals.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Cardio Conditioning</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Rowers, spin bikes, high-intensity intervals, and endurance training systems.</p>
+                        </div>
+                    </div>
+                    <div class="facility-item" style="display: flex; gap: 15px; align-items: flex-start; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius: 12px;">
+                        <div style="background: rgba(57, 255, 20, 0.1); color: #39FF14; padding: 6px; border-radius: 50%; font-size: 14px; font-weight: bold; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(57,255,20,0.15);">✓</div>
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #fff; font-family: 'Outfit'; font-weight: 700;">Functional Strength</h4>
+                            <p style="margin: 0; font-size: 13px; color: #888; line-height: 1.5;">Kettlebell flows, bodyweight resistance training, and dynamic physical conditioning.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="section-results" class="container" style="padding-top: 0; scroll-margin-top: 80px;">
+                <h2 style="text-align: center; margin-bottom: 20px; font-size: 32px; text-transform: uppercase; font-family: 'Outfit';">Member Success & <span class="green-accent">Results</span></h2>
+                <p style="text-align: center; color: #888; max-width: 600px; margin: 0 auto 50px auto; font-size: 15px; line-height: 1.6;">
+                    Witness the real power of dedication. These transformations show the strength, stamina, and physical success of the RealGym community.
+                </p>
+                <div id="results-container" class="facilities-grid">
+                    <!-- Results populated dynamically from client.js -->
+                </div>
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="https://www.instagram.com/realgym.in/?hl=en" target="_blank" class="button secondary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; padding: 12px 24px; border-radius: 30px; border: 1px solid rgba(57, 255, 20, 0.3); background: rgba(57, 255, 20, 0.05); color: #39FF14; transition: all 0.3s ease;" onmouseover="this.style.background='#39FF14'; this.style.color='#000'; this.style.boxShadow='0 0 15px rgba(57,255,20,0.4)';" onmouseout="this.style.background='rgba(57, 255, 20, 0.05)'; this.style.color='#39FF14'; this.style.boxShadow='none';">
+                        <span>📸</span> View More on Instagram
+                    </a>
+                </div>
+            </section>
+
+            <!-- Choose Your Commitment (Pricing Table) Section -->
+            <section class="container" style="padding-top: 0; text-align: center;">
+                <span class="green-accent" style="font-family: 'Outfit'; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;">Become Elite</span>
+                <h2 style="font-size: 42px; margin: 10px 0 20px 0; text-transform: uppercase; font-family: 'Outfit';">Choose Your Commitment</h2>
+                <p style="color: #888888; max-width: 600px; margin: 0 auto 40px auto; font-size: 15px; line-height: 1.6;">
+                    Select the plan that matches your ambition. No excuses, only results. All plans grant access to the main floor.
+                </p>
+
+                <div class="pricing-grid">
+                    <!-- Monthly -->
+                    <div class="pricing-card">
+                        <div class="card-header">
+                            <h3 class="tier-title">Monthly</h3>
+                            <div class="price-value">₹1,000<span class="price-duration">/mo</span></div>
+                            <p class="tier-desc">Basic gym access for a solid start.</p>
+                        </div>
+                        <ul class="tier-features">
+                            <li><span class="check-icon">✓</span> Full Gym Access</li>
+                        </ul>
+                        <button class="button secondary plan-select-btn" data-tier="Monthly">Join Now</button>
+                    </div>
+
+                    <!-- Quarterly -->
+                    <div class="pricing-card">
+                        <div class="card-header">
+                            <h3 class="tier-title">Quarterly</h3>
+                            <div class="price-value">₹2,999<span class="price-duration">/3 mo</span></div>
+                            <p class="tier-desc">Commit for a season, bring a friend.</p>
+                        </div>
+                        <ul class="tier-features">
+                            <li><span class="check-icon">✓</span> Full Gym Access</li>
+                            <li><span class="check-icon">✓</span> 1 Guest Pass/month</li>
+                        </ul>
+                        <button class="button secondary plan-select-btn" data-tier="Quarterly">Join Now</button>
+                    </div>
+
+                    <!-- Half-Yearly -->
+                    <div class="pricing-card">
+                        <div class="card-header">
+                            <h3 class="tier-title">Half-Yearly</h3>
+                            <div class="price-value">₹5,499<span class="price-duration">/6 mo</span></div>
+                            <p class="tier-desc">Serious dedication with added perks.</p>
+                        </div>
+                        <ul class="tier-features">
+                            <li><span class="check-icon">✓</span> Full Gym Access</li>
+                            <li><span class="check-icon">✓</span> 2 Guest Passes/month</li>
+                            <li><span class="check-icon">✓</span> Basic Health Consult</li>
+                        </ul>
+                        <button class="button secondary plan-select-btn" data-tier="Half-Yearly">Join Now</button>
+                    </div>
+
+                    <!-- Elite Annual (Featured) -->
+                    <div class="pricing-card featured">
+                        <div class="badge-best-value">Best Value</div>
+                        <div class="card-header">
+                            <h3 class="tier-title green-accent" style="margin-top: 5px;">Elite Annual</h3>
+                            <div class="price-value">₹9,999<span class="price-duration">/yr</span></div>
+                            <p class="tier-desc">Total domination. The ultimate package.</p>
+                        </div>
+                        <ul class="tier-features">
+                            <li><span class="check-icon">✓</span> Full Gym Access</li>
+                            <li><span class="check-icon">✓</span> Unlimited Guest Passes</li>
+                            <li><span class="check-icon">✓</span> Full Health Consulting</li>
+                            <li><span class="check-icon">✓</span> Priority Support</li>
+                        </ul>
+                        <button class="button plan-select-btn" data-tier="Elite Annual">Join Now</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 2. CLIENT DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-container">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h1 style="margin: 0; font-size: 38px;">MEMBER <span class="green-accent">DASHBOARD</span></h1>
+                        <p style="color: #888; margin: 5px 0 0 0;" id="dashboard-welcome-msg">Welcome back, Client!</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="button secondary" onclick="window.location.href='admin.html'">Go to Admin View</button>
+                    </div>
+                </div>
+
+                <!-- Client Dashboard Stat Box (Membership Status Box) -->
+                <div class="membership-status-box" id="membership-box">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 20px; color: #FFFFFF !important;" id="member-name">John Doe</h3>
+                            <div style="margin-top: 5px;">
+                                <span class="badge active" id="member-status-badge">Active</span>
+                                <span class="badge tier-elite-annual" id="member-tier-badge" style="margin-left: 5px;">Elite Annual</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;" id="membership-dates">
+                            <div style="font-size: 13px; color: #888888;">MEMBER SINCE: <span style="color: #FFF; font-weight: 500;" id="member-since">Jan 15, 2026</span></div>
+                            <div style="font-size: 13px; color: #888888; margin-top: 5px;">RENEWAL DATE: <span style="color: #39FF14; font-weight: 600;" id="member-renewal">Aug 15, 2026</span></div>
+                            <div style="font-size: 13px; color: #888888; margin-top: 5px;">TIME REMAINING: <span style="font-weight: 700;" id="member-days-left">Calculating...</span></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                        <div>
+                            <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Member ID</div>
+                            <div style="font-size: 16px; font-weight: 600; color: #fff; margin-top: 5px;" id="member-id">RG-98421</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Registered WhatsApp</div>
+                            <div style="font-size: 16px; font-weight: 600; color: #39FF14; margin-top: 5px;" id="member-phone">94477 71658</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <span style="font-size: 13.5px; color: #aaa;">Need to renew or upgrade your plan? Chat with Team AbuSinan directly.</span>
+                        </div>
+                        <a id="client-renew-btn" href="#" target="_blank" class="button" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; padding: 12px 24px;">
+                            <span>💬</span> Renew Membership
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Client Login & Sign Up Modal -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-box glass-card">
+            
+            <div class="modal-header">
+                <h3 id="auth-modal-title">CLIENT <span class="green-accent">PORTAL</span></h3>
+                <button class="close-modal" id="close-auth-modal">&times;</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-phone">WhatsApp / Mobile Number</label>
+                    <input type="text" id="login-phone" placeholder="e.g. 9447771658" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-member-id">Member ID</label>
+                    <input type="text" id="login-member-id" placeholder="e.g. RG-98421" required>
+                </div>
+                <button type="submit" class="button" style="width: 100%; margin-top: 10px;">Sign In</button>
+                
+                <p style="text-align: center; font-size: 13px; color: #888; margin-top: 20px;">
+                    Don't have an account? <a href="#" id="go-to-register" style="color: #39FF14; text-decoration: none; font-weight: 500;">Register Here</a>
+                </p>
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 6px; font-size: 11px; color: #aaa; margin-top: 20px; line-height: 1.4;">
+                    <strong>Demo Client Account:</strong><br>
+                    WhatsApp: <code style="color: #39FF14;">94477 71658</code><br>
+                    Member ID: <code style="color: #39FF14;">RG-98421</code><br><br>
+                    To check Admin Portal, navigate to <a href="admin.html" style="color:#26D0CE;">admin.html</a>
+                </div>
+            </form>
+
+            <!-- Register Form (Initially Hidden) -->
+            <form id="register-form" style="display: none;">
+                <div class="form-group">
+                    <label for="register-name">Full Name</label>
+                    <input type="text" id="register-name" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" placeholder="Create password" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-phone">WhatsApp / Mobile Number</label>
+                    <input type="text" id="register-phone" placeholder="e.g. 9447771658" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-tier">Membership Tier</label>
+                    <select id="register-tier">
+                        <option value="Monthly">Monthly (₹1,000/mo)</option>
+                        <option value="Quarterly">Quarterly (₹2,999/3 mo)</option>
+                        <option value="Half-Yearly">Half-Yearly (₹5,499/6 mo)</option>
+                        <option value="Elite Annual" selected>Elite Annual (₹9,999/yr)</option>
+                    </select>
+                </div>
+                <button type="submit" class="button" style="width: 100%; margin-top: 10px;">Create Account</button>
+                
+                <p style="text-align: center; font-size: 13px; color: #888; margin-top: 20px;">
+                    Already have an account? <a href="#" id="go-to-login" style="color: #39FF14; text-decoration: none; font-weight: 500;">Sign In</a>
+                </p>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; padding: 40px 20px 20px 20px; border-top: 1px solid rgba(255,255,255,0.05); text-align: left; box-sizing: border-box;">
+            <div>
+                <h4 style="margin: 0 0 10px 0; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; font-family: 'Outfit'; font-weight: 800;"><span class="green-accent">Team</span> AbuSinan</h4>
+                <p style="color: #888; font-size: 13px; line-height: 1.6; margin: 0 0 20px 0;">Providing world-class weight training, personal coaching, arm wrestling technique, diet nutrition advice, and functional strength guidelines in Orimukku.</p>
+                <p style="font-size: 12px; color: #666; margin: 0;">&copy; 2026 REALGYM. Unleash Your Limits. All rights reserved. | <a href="admin.html" style="color: #888; text-decoration: none;">Admin Portal</a></p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-end; justify-content: center; font-size: 13px; color: #ccc;">
+                <a href="https://maps.app.goo.gl/4JG2h5W7WuaFKTbU6" target="_blank" class="location-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; transition: all 0.3s ease;">
+                    <span>📍</span>
+                    <strong style="color: #fff; transition: color 0.3s ease;">Orimukku | Real Gym</strong>
+                </a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>📞</span>
+                    <strong style="color: #ccc;">
+                        <a href="https://wa.me/919447771658?text=Hello%20Team%20AbuSinan,%20I%20would%20like%20to%20inquire%20about%20joining%20RealGym!" target="_blank" class="whatsapp-link" style="color: #39FF14; text-decoration: none; transition: all 0.3s ease; text-shadow: 0 0 5px rgba(57, 255, 20, 0.2);">94477 71658</a>
+                        <span style="color: #444; margin: 0 5px;">/</span>
+                        <a href="https://wa.me/919567371658?text=Hello%20Team%20AbuSinan,%20I%20would%20like%20to%20inquire%20about%20joining%20RealGym!" target="_blank" class="whatsapp-link" style="color: #39FF14; text-decoration: none; transition: all 0.3s ease; text-shadow: 0 0 5px rgba(57, 255, 20, 0.2);">956 737 1658</a>
+                    </strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>✉️</span>
+                    <span>contact@realgym.com</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="shared.js"></script>
+    <script src="client.js" defer></script>
+</body>
+</html>

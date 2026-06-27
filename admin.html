@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealGym Admin | Operations Center</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- Admin Portal Navigation -->
+    <header>
+        <div class="nav-container" style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 15px 20px;">
+            <a href="index.html" class="logo" style="display: flex; align-items: center; gap: 8px;">
+                <div style="background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; height: 50px; width: 50px; box-shadow: 0 0 15px rgba(255,255,255,0.2); overflow: hidden;">
+                    <img src="gym-logo.png" alt="The Real Gym Logo" style="height: 90%; width: 90%; object-fit: contain;">
+                </div>
+                <span style="font-size:12px; border:1px solid #39FF14; color: #39FF14; padding:2px 6px; border-radius:3px; margin-left:5px; text-shadow: 0 0 5px rgba(57,255,20,0.3); font-weight: 800; font-family: 'Outfit';">ADMIN</span>
+            </a>
+            
+            <div style="display: flex; align-items: center; gap: 30px;">
+                <ul class="nav-links" style="display: flex; gap: 20px; list-style: none; margin: 0; padding: 0;">
+                    <li><a href="index.html">Client View</a></li>
+                </ul>
+                
+                <button id="nav-logout" class="button secondary danger-hover-btn" style="display: none; border-radius: 30px; padding: 10px 22px; font-size: 12px; font-weight: 800; border: 2px solid #ff3939; color: #ff3939; background: transparent; letter-spacing: 1px; cursor: pointer;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- 1. ADMIN LOGIN VIEW -->
+        <div id="admin-login-view" class="view-container active">
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+                <div class="glass-card modal-box" style="margin:0;">
+                    <div class="modal-header">
+                        <h3>ADMIN <span class="green-accent">LOGIN</span></h3>
+                    </div>
+                    <form id="admin-login-form">
+                        <div class="form-group">
+                            <label for="admin-email">Email Address</label>
+                            <input type="email" id="admin-email" placeholder="admin@realgym.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-password">Password</label>
+                            <input type="password" id="admin-password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="button" style="width: 100%; margin-top: 10px;">Access Console</button>
+                        
+                        <div style="background: rgba(57, 255, 20, 0.03); border: 1px solid rgba(57, 255, 20, 0.1); padding: 12px; border-radius: 6px; font-size: 11px; color: #aaa; margin-top: 20px; line-height: 1.4;">
+                            <strong>Default Credentials:</strong><br>
+                            Email: <code style="color: #39FF14;">admin@realgym.com</code><br>
+                            Password: <code style="color: #39FF14;">admin123</code>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ADMIN DASHBOARD VIEW (Initially Hidden) -->
+        <div id="admin-dashboard-view" class="view-container">
+            
+            <div class="admin-header-row">
+                <div>
+                    <h1 style="margin:0; font-size:38px;">ADMINISTRATOR <span class="green-accent">PANEL</span></h1>
+                    <p style="color:#888; margin:5px 0 0 0;">Manage gym members, schedules, and monitor operational analytics.</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="button" id="admin-add-member-btn">+ Register Member</button>
+                </div>
+            </div>
+
+            <!-- Operations Analytics Grid -->
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Total Members</span>
+                        <span class="stat-value" id="admin-stat-members">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🟢</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Active Members</span>
+                        <span class="stat-value" id="admin-stat-active-members">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏋️‍♂️</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Workouts Logged</span>
+                        <span class="stat-value" id="admin-stat-workouts">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <span class="stat-title">Est. Revenue / mo</span>
+                        <span class="stat-value green-accent" id="admin-stat-revenue">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Sections Split -->
+            <div style="display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 40px;">
+                
+                <!-- Member Directory Panel -->
+                <div class="glass-card">
+                    <h3>MEMBER <span class="green-accent">DIRECTORY</span></h3>
+                    <p style="color:#888; font-size:13px; margin:-5px 0 20px 0;">View registry details, toggle access status, and change membership tiers.</p>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Member Name</th>
+                                    <th>Member ID</th>
+                                    <th>WhatsApp Number</th>
+                                    <th>Selected Plan</th>
+
+                                    <th>Dates</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-members-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Results Manager Panel -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="margin: 0;">MANAGE SUCCESS <span class="green-accent">RESULTS</span></h3>
+                            <p style="color:#888; font-size:13px; margin:5px 0 0 0;">Add, view, and delete member transformation stories that display on the landing page.</p>
+                        </div>
+                        <button class="button" id="admin-add-result-btn" style="padding: 8px 16px; font-size: 12px;">+ Add Result</button>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Result ID</th>
+                                    <th>Transformation Image</th>
+                                    <th>Status</th>
+                                    <th style="width: 100px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-results-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Admin Registration Modal -->
+    <div class="modal-overlay" id="admin-member-modal">
+        <div class="modal-box glass-card">
+            <div class="modal-header">
+                <h3>REGISTER <span class="green-accent">NEW MEMBER</span></h3>
+                <button class="close-modal" id="close-admin-member-modal">&times;</button>
+            </div>
+            <form id="admin-member-form">
+                <div class="form-group">
+                    <label for="admin-new-name">Full Name</label>
+                    <input type="text" id="admin-new-name" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin-new-password">Temporary Password</label>
+                    <input type="text" id="admin-new-password" value="password123" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-new-phone">WhatsApp / Mobile Number</label>
+                    <input type="text" id="admin-new-phone" placeholder="e.g. 9447771658" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-new-tier">Membership Tier</label>
+                    <select id="admin-new-tier">
+                        <option value="Monthly">Monthly (₹1,000/mo)</option>
+                        <option value="Quarterly">Quarterly (₹2,999/3 mo)</option>
+                        <option value="Half-Yearly">Half-Yearly (₹5,499/6 mo)</option>
+                        <option value="Elite Annual" selected>Elite Annual (₹9,999/yr)</option>
+                    </select>
+                </div>
+                <button type="submit" class="button" style="width: 100%; margin-top: 10px;">Create Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Result Modal -->
+    <div class="modal-overlay" id="admin-result-modal">
+        <div class="modal-box glass-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>ADD SUCCESS <span class="green-accent">RESULT</span></h3>
+                <button class="close-modal" id="close-admin-result-modal">&times;</button>
+            </div>
+            <form id="admin-result-form">
+                <div class="form-group">
+                    <label for="result-image-file">Upload Transformation Image</label>
+                    <input type="file" id="result-image-file" accept="image/*" required style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; box-sizing: border-box; font-family: inherit; cursor: pointer;">
+                </div>
+                <button type="submit" class="button" style="width: 100%; margin-top: 15px;">Publish Result Image</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 REALGYM Inc. Admin Console. | <a href="index.html">Client Front</a></p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="shared.js"></script>
+    <script src="admin.js" defer></script>
+</body>
+</html>
